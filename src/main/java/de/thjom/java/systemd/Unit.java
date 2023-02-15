@@ -11,28 +11,19 @@
 
 package de.thjom.java.systemd;
 
-import static de.thjom.java.systemd.Unit.Property.ACTIVE_STATE;
-import static de.thjom.java.systemd.Unit.Property.LOAD_STATE;
-import static de.thjom.java.systemd.Unit.Property.SUB_STATE;
+import de.thjom.java.systemd.interfaces.*;
+import de.thjom.java.systemd.types.*;
+import org.freedesktop.dbus.*;
+import org.freedesktop.dbus.exceptions.*;
+import org.freedesktop.dbus.interfaces.*;
+import org.freedesktop.dbus.interfaces.Properties.*;
+import org.freedesktop.dbus.messages.*;
+import org.freedesktop.dbus.types.*;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.math.*;
+import java.util.*;
 
-import org.freedesktop.dbus.DBusPath;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.interfaces.DBusSigHandler;
-import org.freedesktop.dbus.interfaces.Introspectable;
-import org.freedesktop.dbus.interfaces.Properties.PropertiesChanged;
-import org.freedesktop.dbus.messages.DBusSignal;
-import org.freedesktop.dbus.types.Variant;
-
-import de.thjom.java.systemd.interfaces.PropertyInterface;
-import de.thjom.java.systemd.interfaces.UnitInterface;
-import de.thjom.java.systemd.types.Condition;
-import de.thjom.java.systemd.types.Job;
-import de.thjom.java.systemd.types.LoadError;
+import static de.thjom.java.systemd.Unit.Property.*;
 
 public abstract class Unit extends InterfaceAdapter implements UnitStateNotifier {
 
@@ -59,6 +50,34 @@ public abstract class Unit extends InterfaceAdapter implements UnitStateNotifier
             return value;
         }
 
+    }
+
+    public enum UnitStateEnum {
+        UNKNOWN(-1, "unknown"),
+        ACTIVE(0, "active"),
+        ACTIVING(1, "activating"),
+        INACTIVE(2, "inactive"),
+        DEACTIVATING(3, "deactivating"),
+        FAILED(4, "failed");
+        public final int code;
+        public final String state;
+
+        UnitStateEnum(int code, String state) {
+            this.code = code;
+            this.state = state;
+        }
+
+        public static UnitStateEnum valueFromString(String state) {
+            if (state == null) {
+                return UnitStateEnum.UNKNOWN;
+            }
+            for (UnitStateEnum e : UnitStateEnum.values()) {
+                if (e.state.equalsIgnoreCase(state.trim())) {
+                    return e;
+                }
+            }
+            return UnitStateEnum.UNKNOWN;
+        }
     }
 
     public enum Mode {
@@ -400,6 +419,10 @@ public abstract class Unit extends InterfaceAdapter implements UnitStateNotifier
         return unitProperties.getLong(Property.ACTIVE_ENTER_TIMESTAMP);
     }
 
+    public long getUptimeInSeconds() {
+        return System.currentTimeMillis() / 1000 - getActiveEnterTimestamp() / 1000000;
+    }
+
     public long getActiveEnterTimestampMonotonic() {
         return unitProperties.getLong(Property.ACTIVE_ENTER_TIMESTAMP_MONOTONIC);
     }
@@ -414,6 +437,10 @@ public abstract class Unit extends InterfaceAdapter implements UnitStateNotifier
 
     public String getActiveState() {
         return unitProperties.getString(Property.ACTIVE_STATE);
+    }
+
+    public UnitStateEnum getActiveStateEnum() {
+        return UnitStateEnum.valueFromString(unitProperties.getString(Property.ACTIVE_STATE));
     }
 
     public List<String> getAfter() {

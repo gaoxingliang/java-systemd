@@ -19,7 +19,10 @@ public class Main {
         } else if (args[0].equals("service")) {
             for (int i = 1; i < args.length; i++) {
                 Service service = manager.getService(args[i]);
-                System.out.println(service + " \n" + service.getActiveEnterTimestamp());
+                System.out.println("service:" + service + " \n");
+                System.out.println("\tActive:" + service.getActiveStateEnum());
+                System.out.println("\tloaded:" + service.getLoadState());
+                System.out.println("\tuptime:" + service.getUptimeInSeconds());
             }
         }
 

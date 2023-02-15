@@ -11,25 +11,53 @@
 
 package de.thjom.java.systemd;
 
-import java.math.BigInteger;
-import java.util.List;
+import de.thjom.java.systemd.Unit.*;
+import de.thjom.java.systemd.interfaces.*;
+import de.thjom.java.systemd.types.*;
+import org.freedesktop.dbus.*;
+import org.freedesktop.dbus.connections.impl.*;
+import org.freedesktop.dbus.exceptions.*;
+import org.freedesktop.dbus.interfaces.*;
 
-import org.freedesktop.dbus.DBusPath;
-import org.freedesktop.dbus.connections.impl.DBusConnection;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.interfaces.Introspectable;
-
-import de.thjom.java.systemd.Unit.Mode;
-import de.thjom.java.systemd.Unit.Who;
-import de.thjom.java.systemd.interfaces.ManagerInterface;
-import de.thjom.java.systemd.types.DynamicUser;
-import de.thjom.java.systemd.types.UnitFileChange;
-import de.thjom.java.systemd.types.UnitFileInstallChange;
-import de.thjom.java.systemd.types.UnitFileType;
-import de.thjom.java.systemd.types.UnitProcessType;
-import de.thjom.java.systemd.types.UnitType;
+import java.math.*;
+import java.util.*;
 
 public class Manager extends InterfaceAdapter {
+
+    public enum SystemStateEnum {
+        UNKNOWN(-1, "unknown"),
+        RUNNING(0, "running"),
+        INITIALIZAING(1, "initializing"),
+        STARTING(2, "starting"),
+        DEGRADED(3, "degraded"),
+        MAINTENANCE(4, "maintenance"),
+        STOPPING(5, "stopping");
+//        	        "initializing": metrics.ServiceCheckUnknown,
+//                "starting":     metrics.ServiceCheckUnknown,
+//                "running":      metrics.ServiceCheckOK,
+//                "degraded":     metrics.ServiceCheckCritical,
+//                "maintenance":  metrics.ServiceCheckCritical,
+//                "stopping":     metrics.ServiceCheckCritical,
+//
+        public final int code;
+        public final String state;
+        SystemStateEnum(int code, String state) {
+            this.code = code;
+            this.state = state;
+        }
+
+        public static SystemStateEnum valueFromString(String state) {
+            if (state == null) {
+                return SystemStateEnum.UNKNOWN;
+            }
+            for (SystemStateEnum e : SystemStateEnum.values()) {
+                if (e.state.equalsIgnoreCase(state.trim())) {
+                    return e;
+                }
+            }
+            return SystemStateEnum.UNKNOWN;
+        }
+    }
 
     public static final String SERVICE_NAME = Systemd.SERVICE_NAME + ".Manager";
 
@@ -917,6 +945,10 @@ public class Manager extends InterfaceAdapter {
 
     public String getSystemState() {
         return properties.getString(Property.SYSTEM_STATE);
+    }
+
+    public SystemStateEnum getSystemStateEnum() {
+        return SystemStateEnum.valueFromString(properties.getString(Property.SYSTEM_STATE));
     }
 
     public String getTainted() {
