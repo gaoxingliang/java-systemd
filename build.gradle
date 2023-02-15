@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven'
 }
 
 group = 'io.gaoxingliang.java-systemd'
@@ -10,11 +11,25 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    mvnpub
+}
+
+ext {
+    MAVEN_GROUP_ID    = "com.zoomphant.plugins"
+    MAVEN_ARTIFACT_ID = project.name
+    MAVEN_VERSION     = project.version
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        credentials {
+            username ZP_MAVEN_REPO_USERNAME
+            password ZP_MAVEN_REPO_PASSWORD
+        }
+        url ZP_REPOSITORRY_URL
+    }
 }
 
 dependencies {
@@ -37,6 +52,32 @@ task fatjar(type: Jar) {
     with jar
 }
 
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: ZP_REPOSITORRY_URL) {
+                authentication(userName: ZP_MAVEN_REPO_USERNAME, password: ZP_MAVEN_REPO_PASSWORD)
+                pom.groupId = MAVEN_GROUP_ID
+                pom.artifactId = MAVEN_ARTIFACT_ID
+            }
+
+            pom.whenConfigured { pom ->
+                pom.dependencies.forEach { dep ->
+                    if (dep.getVersion() == "unspecified") {
+                        dep.setGroupId(MAVEN_GROUP_ID)
+                        dep.setVersion(project.version)
+                    }
+                }
+            }
+        }
+    }
+}
+
+task upload(dependsOn: uploadArchives) {
+    doLast {
+        println "Uploading $MAVEN_GROUP_ID.$project.name:$project.version ..."
+    }
+}
 tasks.named('test') {
     useJUnitPlatform()
 }
