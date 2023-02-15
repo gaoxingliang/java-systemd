@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# [3.0.0] - 2023-02-05
+1. changed to gradle.
+2. add some example.
+3. add a fatjar task.
+
+
 ## [2.1.0] - 2021-03-25
 
 ### Added

@@ -11,21 +11,16 @@
 
 package de.thjom.java.systemd;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.xml.bind.DatatypeConverter;
+import org.freedesktop.dbus.connections.impl.*;
+import org.freedesktop.dbus.connections.impl.DBusConnection.*;
+import org.freedesktop.dbus.exceptions.*;
+import org.slf4j.*;
 
-import org.freedesktop.dbus.connections.impl.DBusConnection;
-import org.freedesktop.dbus.connections.impl.DBusConnection.DBusBusType;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.exceptions.NotConnected;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.xml.bind.*;
+import java.time.*;
+import java.time.temporal.*;
+import java.util.*;
+import java.util.regex.*;
 
 public final class Systemd {
 
@@ -73,7 +68,7 @@ public final class Systemd {
 
     public static String escapePath(final CharSequence path) {
         if (path != null) {
-            StringBuilder escaped = new StringBuilder(path.length());
+            StringBuffer escaped = new StringBuffer(path.length());
             Matcher matcher = PATH_ESCAPE_PATTERN.matcher(path);
 
             while (matcher.find()) {

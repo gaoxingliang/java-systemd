@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.gaoxingliang.java-systemd'
+version = '3.0.0'
+sourceCompatibility = '1.8'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.github.hypfvieh:dbus-java:3.3.0'
+    implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
+    testImplementation 'org.testng:testng:7.4.0'
+    testImplementation 'org.mockito:mockito-inline:3.8.0'
+    testImplementation 'org.awaitility:awaitility:4.0.3'
+}
+
+task fatjar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'de.thjom.java.systemd.Main'
+    }
+    baseName = 'java-systemd-all-in-one'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
